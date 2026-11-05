@@ -1,0 +1,9 @@
+# Reproducible Contract Review Agent Evaluation Demo
+# The core evaluation suite, agents, metrics, and report generator run out-of-the-box
+# on Python 3.10+ using only standard library modules (zero external dependencies required).
+
+# Optional: For live Google Gemini model calls and cloud-hosted evaluator judges
+# google-genai>=1.0.0
+
+# Optional: For development and automated testing
+pytest>=8.0.0

@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Evaluation Dashboard: 18-Point Contract Review</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-dark: #0284c7;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-family);
+      line-height: 1.5;
+      padding: 32px 24px;
+    }
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 12px;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+    .meta-item strong { color: var(--text); }
+    
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 36px;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+    .kpi-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .kpi-val {
+      font-size: 32px;
+      font-weight: 800;
+      margin: 8px 0;
+    }
+    .kpi-delta {
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .positive { color: var(--success); }
+    .neutral { color: var(--primary); }
+
+    /* Comparison Table */
+    .section-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: #fff;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      background: rgba(15, 23, 42, 0.6);
+      color: var(--text-muted);
+      padding: 12px 16px;
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+    }
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .tag-pass { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .tag-fail { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+    .tag-baseline { background: rgba(148, 163, 184, 0.15); color: var(--text-muted); }
+    .tag-tool { background: rgba(56, 189, 248, 0.15); color: var(--primary); }
+
+    /* Progress bar */
+    .bar-container {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+    .bar-fill-tool { background: var(--primary); }
+    .bar-fill-baseline { background: #94a3b8; }
+
+    /* Accordion for traces */
+    details {
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+    summary {
+      padding: 14px 18px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      user-select: none;
+    }
+    summary:hover { background: rgba(255, 255, 255, 0.03); }
+    .details-body {
+      padding: 18px;
+      border-top: 1px solid var(--border);
+      background: #0f172a;
+      font-size: 13px;
+    }
+    pre {
+      background: #090d16;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: monospace;
+      font-size: 12px;
+      color: #38bdf8;
+    }
+    .tab-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .tab-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #0f172a;
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>
+        ⚖️ Contract Review Agent Evaluation Dashboard
+        <span class="badge">18-Point Compliance</span>
+      </h1>
+      <div class="meta-bar">
+        <span class="meta-item">Dataset Version: <strong>v1.0</strong></span>
+        <span class="meta-item">LLM Judge Version: <strong>v1.0</strong></span>
+        <span class="meta-item">Agent Config: <strong>v1.0</strong></span>
+        <span class="meta-item">Execution: <strong>2026-11-05T18:23:27.024240+00:00</strong></span>
+        <span class="meta-item">Evaluator Model: <strong>gemini-2.0-flash (temp=0.0)</strong></span>
+      </div>
+    </header>
+
+    <!-- Top KPI Highlights -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Check Accuracy (Exact/Semantic)</div>
+        <div class="kpi-val" style="color: var(--primary);">98.0%</div>
+        <div class="kpi-delta positive">
+          ↑ +20.4% vs Baseline (77.6%)
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Reasoning Quality (Judge 1-5)</div>
+        <div class="kpi-val" style="color: #a855f7;">4.76 <span style="font-size: 18px; color: var(--text-muted);">/ 5.0</span></div>
+        <div class="kpi-delta positive">
+          ↑ +1.52 pts vs Baseline (3.24)
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Clause Citation Accuracy</div>
+        <div class="kpi-val" style="color: var(--success);">100.0%</div>
+        <div class="kpi-delta positive">
+          ↑ +13.0% vs Baseline (87.0%)
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Tool Efficiency & Calls</div>
+        <div class="kpi-val" style="color: #f59e0b;">52 <span style="font-size: 16px; color: var(--text-muted);">calls</span></div>
+        <div class="kpi-delta neutral">
+          2.35s avg latency | 0 calls for Run A
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparative Overview Table -->
+    <div class="section-card">
+      <h2>📊 Run A (Baseline / No Tools) vs. Run B (Tool-Augmented / RAG)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Performance Metric</th>
+            <th>Run A: Baseline (Direct Prompt)</th>
+            <th>Run B: Tool-Augmented (RAG)</th>
+            <th>Absolute Advantage</th>
+            <th>Status / Outcome</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Mean Check_Accuracy</strong><br><small style="color: var(--text-muted)">Exact parameter match across 18 criteria</small></td>
+            <td>
+              <strong>77.6%</strong>
+              <div class="bar-container"><div class="bar-fill bar-fill-baseline" style="width: 77.58%"></div></div>
+            </td>
+            <td>
+              <strong style="color: var(--primary)">98.0%</strong>
+              <div class="bar-container"><div class="bar-fill bar-fill-tool" style="width: 97.98%"></div></div>
+            </td>
+            <td><strong class="positive">+20.4%</strong></td>
+            <td><span class="tag tag-pass">Tool Superiority</span></td>
+          </tr>
+          <tr>
+            <td><strong>Reasoning_Quality (LLM Judge)</strong><br><small style="color: var(--text-muted)">Strict 1-5 legal rubric rating justifications & quotes</small></td>
+            <td><strong>3.24 / 5.0</strong></td>
+            <td><strong style="color: #a855f7">4.76 / 5.0</strong></td>
+            <td><strong class="positive">+1.52 pts</strong></td>
+            <td><span class="tag tag-pass">Substantive Evidence</span></td>
+          </tr>
+          <tr>
+            <td><strong>Section Citation Accuracy</strong><br><small style="color: var(--text-muted)">Precision of specific clause / schedule references</small></td>
+            <td><strong>87.0%</strong></td>
+            <td><strong style="color: var(--success)">100.0%</strong></td>
+            <td><strong class="positive">+13.0%</strong></td>
+            <td><span class="tag tag-pass">Grounded Citations</span></td>
+          </tr>
+          <tr>
+            <td><strong>Average Execution Latency</strong><br><small style="color: var(--text-muted)">End-to-end execution time per contract</small></td>
+            <td>1.22 seconds</td>
+            <td>2.35 seconds</td>
+            <td>+1.13 seconds</td>
+            <td><span class="tag tag-baseline">Trade-off (Accuracy > Speed)</span></td>
+          </tr>
+          <tr>
+            <td><strong>Total Token Consumption</strong><br><small style="color: var(--text-muted)">Prompt + Completion tokens across 3 contracts</small></td>
+            <td>16,528 tokens</td>
+            <td>9,140 tokens</td>
+            <td>0.55x token ratio</td>
+            <td><span class="tag tag-baseline">$0.0049 total cost</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Contract-by-Contract Breakdown -->
+    <div class="section-card">
+      <h2>📑 18-Point Compliance Checklist by Contract</h2>
+
+      <details open style="margin-bottom: 24px;">
+        <summary>
+          <span><strong>Mutual Non-Disclosure and Confidentiality Agreement</strong> (Low Complexity · Mutual NDA)</span>
+          <span>Baseline: <strong>67%</strong> → Tool: <strong style="color: var(--primary);">95%</strong></span>
+        </summary>
+        <div class="details-body">
+          <table>
+            <thead>
+              <tr>
+                <th>Compliance Dimension</th>
+                <th>Baseline (Run A)</th>
+                <th>Tool-Augmented (Run B)</th>
+                <th>Ground Truth Section</th>
+                <th>Agent Citations (A vs B)</th>
+                <th>LLM Judge Score & Critique (Run B)</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <tr>
+                <td><strong>Governing Law & Jurisdiction</strong><br><small style="color: var(--text-muted);">Legal & Jurisdiction</small></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 10.1</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 10.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 10.1</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 10.1 (expected: Section 10.1). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Limitation of Liability & Caps</strong><br><small style="color: var(--text-muted);">Risk & Financial Exposure</small></td>
+                <td><span class='tag tag-pass'>74%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 6.1</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 6.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 6.1</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 6.1 (expected: Section 6.1). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>IP Ownership & Work-for-Hire</strong><br><small style="color: var(--text-muted);">Intellectual Property</small></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><code>Section 5.1, Section 5.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 5.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 5.1, Section 5.2</strong>
+                </td>
+                <td>
+                  <strong>3.5 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 3.5/5: Acceptable but incomplete. Identifies primary concept under Section 5.1, Section 5.2, but missed key qualifiers or exceptions (covered 66% of required parameters: No IP assignment or work-for-hire created; all Confidential Information remains ...).</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Indemnification Obligations & Limits</strong><br><small style="color: var(--text-muted);">Risk & Financial Exposure</small></td>
+                <td><span class='tag tag-pass'>74%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 7.1, Section 7.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 7.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 7.1, Section 7.2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 7.1, Section 7.2 (expected: Section 7.1, Section 7.2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Termination Notice Periods</strong><br><small style="color: var(--text-muted);">Contract Lifecycle</small></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 3.1, Section 3.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 3.2</small><br>
+                  <strong style="color: var(--primary)">B: Section 3.1, Section 3.2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 3.1, Section 3.2 (expected: Section 3.1, Section 3.2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Confidentiality Duration & Survival</strong><br><small style="color: var(--text-muted);">Confidentiality & Privacy</small></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 3.3</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 3.3</small><br>
+                  <strong style="color: var(--primary)">B: Section 3.3</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 3.3 (expected: Section 3.3). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Audit Rights & Compliance Inspection</strong><br><small style="color: var(--text-muted);">Governance & Compliance</small></td>
+                <td><span class='tag tag-pass'>77%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 9.1</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 9.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 9.1</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 9.1 (expected: Section 9.1). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Non-Solicitation of Personnel</strong><br><small style="color: var(--text-muted);">Human Resources & Restrictive Covenants</small></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 8.1</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 8.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 8.1</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 8.1 (expected: Section 8.1). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Payment Timing & Late Fees</strong><br><small style="color: var(--text-muted);">Commercial & Financial</small></td>
+                <td><span class='tag tag-fail'>12%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 15.3</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: General</small><br>
+                  <strong style="color: var(--primary)">B: Section 15.3</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 15.3 (expected: Section 15.3). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Dispute Resolution & Arbitration</strong><br><small style="color: var(--text-muted);">Legal & Jurisdiction</small></td>
+                <td><span class='tag tag-pass'>82%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 10.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 10.2</small><br>
+                  <strong style="color: var(--primary)">B: Section 10.2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 10.2 (expected: Section 10.2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Force Majeure & Suspension Rights</strong><br><small style="color: var(--text-muted);">Contract Lifecycle</small></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><span class='tag tag-pass'>77%</span></td>
+                <td><code>Section 11.1</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 11.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 11.1</strong>
+                </td>
+                <td>
+                  <strong>2.5 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 2.5/5: Deficient analysis. Missed multiple core requirements (covered only 33% of ground truth elements). Expected: Excuses performance delay for acts of God, war, pandemic, etc.; explicitly excludes obliga...</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Assignment & Change of Control</strong><br><small style="color: var(--text-muted);">Contract Lifecycle</small></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 12.1</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 12.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 12.1</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 12.1 (expected: Section 12.1). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Insurance Coverage Requirements</strong><br><small style="color: var(--text-muted);">Risk & Financial Exposure</small></td>
+                <td><span class='tag tag-fail'>0%</span></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><code>Section 15.3</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: General</small><br>
+                  <strong style="color: var(--primary)">B: Section 15.3</strong>
+                </td>
+                <td>
+                  <strong>3.5 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 3.5/5: Acceptable but incomplete. Identifies primary concept under Section 15.3, but missed key qualifiers or exceptions (covered 66% of required parameters: Not applicable / silent; Section 15.3 explicitly notes insurance requirements ar...).</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Warranties & Warranty Period</strong><br><small style="color: var(--text-muted);">Commercial & Quality</small></td>
+                <td><span class='tag tag-fail'>0%</span></td>
+                <td><span class='tag tag-pass'>82%</span></td>
+                <td><code>Section 15.3</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 5.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 15.3</strong>
+                </td>
+                <td>
+                  <strong>3.5 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 3.5/5: Acceptable but incomplete. Identifies primary concept under Section 15.3, but missed key qualifiers or exceptions (covered 50% of required parameters: Not applicable / silent; Section 15.3 confirms product warranties are absent fro...).</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Data Privacy & Breach Notification</strong><br><small style="color: var(--text-muted);">Confidentiality & Privacy</small></td>
+                <td><span class='tag tag-pass'>74%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 13.1</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 13.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 13.1</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 13.1 (expected: Section 13.1). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Export Control & Sanctions</strong><br><small style="color: var(--text-muted);">Regulatory & Compliance</small></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 14.1</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 14.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 14.1</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 14.1 (expected: Section 14.1). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Subcontracting Permissions & Liability</strong><br><small style="color: var(--text-muted);">Governance & Operations</small></td>
+                <td><span class='tag tag-fail'>0%</span></td>
+                <td><span class='tag tag-pass'>82%</span></td>
+                <td><code>Section 15.3</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: General</small><br>
+                  <strong style="color: var(--primary)">B: Section 15.3</strong>
+                </td>
+                <td>
+                  <strong>3.5 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 3.5/5: Acceptable but incomplete. Identifies primary concept under Section 15.3, but missed key qualifiers or exceptions (covered 50% of required parameters: Not applicable / silent; commercial subcontracting is not governed under this ND...).</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Severability & Entire Agreement</strong><br><small style="color: var(--text-muted);">Boilerplate & Interpretation</small></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 15.1, Section 15.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 15.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 15.1, Section 15.2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 15.1, Section 15.2 (expected: Section 15.1, Section 15.2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <details open style="margin-bottom: 24px;">
+        <summary>
+          <span><strong>Cloud Vendor Services Agreement</strong> (Medium Complexity · SaaS / Vendor Services Agreement)</span>
+          <span>Baseline: <strong>87%</strong> → Tool: <strong style="color: var(--primary);">98%</strong></span>
+        </summary>
+        <div class="details-body">
+          <table>
+            <thead>
+              <tr>
+                <th>Compliance Dimension</th>
+                <th>Baseline (Run A)</th>
+                <th>Tool-Augmented (Run B)</th>
+                <th>Ground Truth Section</th>
+                <th>Agent Citations (A vs B)</th>
+                <th>LLM Judge Score & Critique (Run B)</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <tr>
+                <td><strong>Governing Law & Jurisdiction</strong><br><small style="color: var(--text-muted);">Legal & Jurisdiction</small></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 17.1</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 17.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 17.1</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 17.1 (expected: Section 17.1). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Limitation of Liability & Caps</strong><br><small style="color: var(--text-muted);">Risk & Financial Exposure</small></td>
+                <td><span class='tag tag-fail'>65%</span></td>
+                <td><span class='tag tag-pass'>93%</span></td>
+                <td><code>Section 9.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 9.2</small><br>
+                  <strong style="color: var(--primary)">B: Section 9.2</strong>
+                </td>
+                <td>
+                  <strong>3.5 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 3.5/5: Acceptable but incomplete. Identifies primary concept under Section 9.2, but missed key qualifiers or exceptions (covered 80% of required parameters: Total cumulative liability capped at total fees paid/payable in the six (6) mont...).</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>IP Ownership & Work-for-Hire</strong><br><small style="color: var(--text-muted);">Intellectual Property</small></td>
+                <td><span class='tag tag-pass'>91%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 2.1, Section 2.2, Section 2.3</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 2.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 2.1, Section 2.2, Section 2.3</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 2.1, Section 2.2, Section 2.3 (expected: Section 2.1, Section 2.2, Section 2.3). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Indemnification Obligations & Limits</strong><br><small style="color: var(--text-muted);">Risk & Financial Exposure</small></td>
+                <td><span class='tag tag-fail'>65%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 8.1, Section 8.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 8.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 8.1, Section 8.2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 8.1, Section 8.2 (expected: Section 8.1, Section 8.2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Termination Notice Periods</strong><br><small style="color: var(--text-muted);">Contract Lifecycle</small></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 10.2, Section 10.3</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 10.2</small><br>
+                  <strong style="color: var(--primary)">B: Section 10.2, Section 10.3</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 10.2, Section 10.3 (expected: Section 10.2, Section 10.3). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Confidentiality Duration & Survival</strong><br><small style="color: var(--text-muted);">Confidentiality & Privacy</small></td>
+                <td><span class='tag tag-pass'>91%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 4.3</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 4.3</small><br>
+                  <strong style="color: var(--primary)">B: Section 4.3</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 4.3 (expected: Section 4.3). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Audit Rights & Compliance Inspection</strong><br><small style="color: var(--text-muted);">Governance & Compliance</small></td>
+                <td><span class='tag tag-pass'>82%</span></td>
+                <td><span class='tag tag-pass'>91%</span></td>
+                <td><code>Section 6.1, Section 6.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 6.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 6.1, Section 6.2</strong>
+                </td>
+                <td>
+                  <strong>3.5 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 3.5/5: Acceptable but incomplete. Identifies primary concept under Section 6.1, Section 6.2, but missed key qualifiers or exceptions (covered 75% of required parameters: Customer may request most recent SOC 2 Type II audit report once per 12 months u...).</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Non-Solicitation of Personnel</strong><br><small style="color: var(--text-muted);">Human Resources & Restrictive Covenants</small></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 12.1</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 12.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 12.1</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 12.1 (expected: Section 12.1). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Payment Timing & Late Fees</strong><br><small style="color: var(--text-muted);">Commercial & Financial</small></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 3.2, Section 3.3</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 3.2</small><br>
+                  <strong style="color: var(--primary)">B: Section 3.2, Section 3.3</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 3.2, Section 3.3 (expected: Section 3.2, Section 3.3). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Dispute Resolution & Arbitration</strong><br><small style="color: var(--text-muted);">Legal & Jurisdiction</small></td>
+                <td><span class='tag tag-pass'>82%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 16.1, Section 16.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 16.2</small><br>
+                  <strong style="color: var(--primary)">B: Section 16.1, Section 16.2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 16.1, Section 16.2 (expected: Section 16.1, Section 16.2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Force Majeure & Suspension Rights</strong><br><small style="color: var(--text-muted);">Contract Lifecycle</small></td>
+                <td><span class='tag tag-pass'>82%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 15.1, Section 15.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 15.2</small><br>
+                  <strong style="color: var(--primary)">B: Section 15.1, Section 15.2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 15.1, Section 15.2 (expected: Section 15.1, Section 15.2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Assignment & Change of Control</strong><br><small style="color: var(--text-muted);">Contract Lifecycle</small></td>
+                <td><span class='tag tag-pass'>77%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 18.2, Section 17</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 18.2</small><br>
+                  <strong style="color: var(--primary)">B: Section 18.2, Section 17</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 18.2, Section 17 (expected: Section 18.2, Section 17). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Insurance Coverage Requirements</strong><br><small style="color: var(--text-muted);">Risk & Financial Exposure</small></td>
+                <td><span class='tag tag-pass'>91%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 11.1, Section 11.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 11.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 11.1, Section 11.2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 11.1, Section 11.2 (expected: Section 11.1, Section 11.2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Warranties & Warranty Period</strong><br><small style="color: var(--text-muted);">Commercial & Quality</small></td>
+                <td><span class='tag tag-pass'>82%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 7.1, Section 7.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 7.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 7.1, Section 7.2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 7.1, Section 7.2 (expected: Section 7.1, Section 7.2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Data Privacy & Breach Notification</strong><br><small style="color: var(--text-muted);">Confidentiality & Privacy</small></td>
+                <td><span class='tag tag-pass'>91%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 5.1, Section 5.2, Section 5.3</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 5.2</small><br>
+                  <strong style="color: var(--primary)">B: Section 5.1, Section 5.2, Section 5.3</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 5.1, Section 5.2, Section 5.3 (expected: Section 5.1, Section 5.2, Section 5.3). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Export Control & Sanctions</strong><br><small style="color: var(--text-muted);">Regulatory & Compliance</small></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 14.1</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 14.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 14.1</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 14.1 (expected: Section 14.1). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Subcontracting Permissions & Liability</strong><br><small style="color: var(--text-muted);">Governance & Operations</small></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 13.1</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 13.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 13.1</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 13.1 (expected: Section 13.1). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Severability & Entire Agreement</strong><br><small style="color: var(--text-muted);">Boilerplate & Interpretation</small></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><code>Section 18.1, Section 18.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 18.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 18.1, Section 18.2</strong>
+                </td>
+                <td>
+                  <strong>3.5 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 3.5/5: Acceptable but incomplete. Identifies primary concept under Section 18.1, Section 18.2, but missed key qualifiers or exceptions (covered 66% of required parameters: Severability clause; entire agreement clause merging all order forms, exhibits, ...).</small>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <details open style="margin-bottom: 24px;">
+        <summary>
+          <span><strong>Enterprise Master Services Agreement</strong> (High Complexity · Enterprise Master Services Agreement (MSA))</span>
+          <span>Baseline: <strong>79%</strong> → Tool: <strong style="color: var(--primary);">100%</strong></span>
+        </summary>
+        <div class="details-body">
+          <table>
+            <thead>
+              <tr>
+                <th>Compliance Dimension</th>
+                <th>Baseline (Run A)</th>
+                <th>Tool-Augmented (Run B)</th>
+                <th>Ground Truth Section</th>
+                <th>Agent Citations (A vs B)</th>
+                <th>LLM Judge Score & Critique (Run B)</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <tr>
+                <td><strong>Governing Law & Jurisdiction</strong><br><small style="color: var(--text-muted);">Legal & Jurisdiction</small></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 17.1, Section 17.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 17.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 17.1, Section 17.2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 17.1, Section 17.2 (expected: Section 17.1, Section 17.2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Limitation of Liability & Caps</strong><br><small style="color: var(--text-muted);">Risk & Financial Exposure</small></td>
+                <td><span class='tag tag-fail'>47%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 11.2, Section 11.3, Section 11.4, Schedule B Section 4</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 11.2</small><br>
+                  <strong style="color: var(--primary)">B: Section 11.2, Section 11.3, Section 11.4, Schedule B Section 4</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 11.2, Section 11.3, Section 11.4, Schedule B Section 4 (expected: Section 11.2, Section 11.3, Section 11.4, Schedule B Section 4). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>IP Ownership & Work-for-Hire</strong><br><small style="color: var(--text-muted);">Intellectual Property</small></td>
+                <td><span class='tag tag-pass'>86%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 4.1, Section 4.2, Section 4.3, Schedule A Section 2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 4.2</small><br>
+                  <strong style="color: var(--primary)">B: Section 4.1, Section 4.2, Section 4.3, Schedule A Section 2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 4.1, Section 4.2, Section 4.3, Schedule A Section 2 (expected: Section 4.1, Section 4.2, Section 4.3, Schedule A Section 2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Indemnification Obligations & Limits</strong><br><small style="color: var(--text-muted);">Risk & Financial Exposure</small></td>
+                <td><span class='tag tag-pass'>79%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 12.1, Section 12.2, Section 11.4(a)</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 12.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 12.1, Section 12.2, Section 11.4(a)</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 12.1, Section 12.2, Section 11.4(a) (expected: Section 12.1, Section 12.2, Section 11.4(a)). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Termination Notice Periods</strong><br><small style="color: var(--text-muted);">Contract Lifecycle</small></td>
+                <td><span class='tag tag-pass'>79%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 10.2, Section 10.3, Section 10.4</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 10.2</small><br>
+                  <strong style="color: var(--primary)">B: Section 10.2, Section 10.3, Section 10.4</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 10.2, Section 10.3, Section 10.4 (expected: Section 10.2, Section 10.3, Section 10.4). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Confidentiality Duration & Survival</strong><br><small style="color: var(--text-muted);">Confidentiality & Privacy</small></td>
+                <td><span class='tag tag-pass'>93%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 6.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 6.2</small><br>
+                  <strong style="color: var(--primary)">B: Section 6.2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 6.2 (expected: Section 6.2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Audit Rights & Compliance Inspection</strong><br><small style="color: var(--text-muted);">Governance & Compliance</small></td>
+                <td><span class='tag tag-fail'>42%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 8.1, Section 8.2, Section 8.3, Schedule B Section 5</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 8.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 8.1, Section 8.2, Section 8.3, Schedule B Section 5</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 8.1, Section 8.2, Section 8.3, Schedule B Section 5 (expected: Section 8.1, Section 8.2, Section 8.3, Schedule B Section 5). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Non-Solicitation of Personnel</strong><br><small style="color: var(--text-muted);">Human Resources & Restrictive Covenants</small></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 7.1, Section 7.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 7.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 7.1, Section 7.2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 7.1, Section 7.2 (expected: Section 7.1, Section 7.2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Payment Timing & Late Fees</strong><br><small style="color: var(--text-muted);">Commercial & Financial</small></td>
+                <td><span class='tag tag-pass'>82%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 3.2, Section 3.3, Section 3.4</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 3.2</small><br>
+                  <strong style="color: var(--primary)">B: Section 3.2, Section 3.3, Section 3.4</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 3.2, Section 3.3, Section 3.4 (expected: Section 3.2, Section 3.3, Section 3.4). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Dispute Resolution & Arbitration</strong><br><small style="color: var(--text-muted);">Legal & Jurisdiction</small></td>
+                <td><span class='tag tag-pass'>79%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 16.1</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 16.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 16.1</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 16.1 (expected: Section 16.1). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Force Majeure & Suspension Rights</strong><br><small style="color: var(--text-muted);">Contract Lifecycle</small></td>
+                <td><span class='tag tag-pass'>79%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 14.1, Section 14.2, Section 14.3</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 14.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 14.1, Section 14.2, Section 14.3</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 14.1, Section 14.2, Section 14.3 (expected: Section 14.1, Section 14.2, Section 14.3). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Assignment & Change of Control</strong><br><small style="color: var(--text-muted);">Contract Lifecycle</small></td>
+                <td><span class='tag tag-pass'>82%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 15.1, Section 15.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 15.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 15.1, Section 15.2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 15.1, Section 15.2 (expected: Section 15.1, Section 15.2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Insurance Coverage Requirements</strong><br><small style="color: var(--text-muted);">Risk & Financial Exposure</small></td>
+                <td><span class='tag tag-pass'>88%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 9.1, Section 9.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 9.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 9.1, Section 9.2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 9.1, Section 9.2 (expected: Section 9.1, Section 9.2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Warranties & Warranty Period</strong><br><small style="color: var(--text-muted);">Commercial & Quality</small></td>
+                <td><span class='tag tag-fail'>63%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 5.1, Section 5.2, Schedule C Section 2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 5.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 5.1, Section 5.2, Schedule C Section 2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 5.1, Section 5.2, Schedule C Section 2 (expected: Section 5.1, Section 5.2, Schedule C Section 2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Data Privacy & Breach Notification</strong><br><small style="color: var(--text-muted);">Confidentiality & Privacy</small></td>
+                <td><span class='tag tag-pass'>79%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 13.1, Section 13.2, Schedule B Sections 1-3</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 13.2</small><br>
+                  <strong style="color: var(--primary)">B: Section 13.1, Section 13.2, Schedule B Sections 1-3</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 13.1, Section 13.2, Schedule B Sections 1-3 (expected: Section 13.1, Section 13.2, Schedule B Sections 1-3). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Export Control & Sanctions</strong><br><small style="color: var(--text-muted);">Regulatory & Compliance</small></td>
+                <td><span class='tag tag-pass'>91%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 18.3</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 18.3</small><br>
+                  <strong style="color: var(--primary)">B: Section 18.3</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 18.3 (expected: Section 18.3). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Subcontracting Permissions & Liability</strong><br><small style="color: var(--text-muted);">Governance & Operations</small></td>
+                <td><span class='tag tag-pass'>82%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 4.5</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 4.5</small><br>
+                  <strong style="color: var(--primary)">B: Section 4.5</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 4.5 (expected: Section 4.5). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+              <tr>
+                <td><strong>Severability & Entire Agreement</strong><br><small style="color: var(--text-muted);">Boilerplate & Interpretation</small></td>
+                <td><span class='tag tag-pass'>82%</span></td>
+                <td><span class='tag tag-pass'>100%</span></td>
+                <td><code>Section 1.2, Section 18.1, Section 18.2</code></td>
+                <td>
+                  <small style="color: #94a3b8">A: Section 18.1</small><br>
+                  <strong style="color: var(--primary)">B: Section 1.2, Section 18.1, Section 18.2</strong>
+                </td>
+                <td>
+                  <strong>5.0 / 5.0</strong><br>
+                  <small style="color: var(--text-muted);">Score 5.0/5: Exemplary legal precision. Correctly cites Section 1.2, Section 18.1, Section 18.2 (expected: Section 1.2, Section 18.1, Section 18.2). Comprehensive coverage of critical parameters with verified clause quote.</small>
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+    </div>
+
+    <div class="section-card">
+      <h2>🔍 Tool Execution Traces (Observability & Cross-References)</h2>
+      <p style="color: var(--text-muted); margin-bottom: 16px;">
+        Sample tool execution trace showing how Run B isolates sections and verifies cross-references before synthesizing judgments:
+      </p>
+
+      <details>
+        <summary><span>Trace: Mutual Non-Disclosure and Confidentiality Agreement</span> <span style="color: var(--primary);">3 Tool Steps</span></summary>
+        <div class="details-body">
+          <pre>[
+  {
+    "step": 1,
+    "tool": "get_contract_outline",
+    "input": "01_standard_nda",
+    "summary": "Discovered 17 sections & schedules"
+  },
+  {
+    "step": 2,
+    "tool": "get_contract_section",
+    "input": "SECTION 15",
+    "summary": "Verified Section 15.3 disclaiming commercial terms (payment, warranty, insurance, subcontracting)"
+  },
+  {
+    "step": 3,
+    "tool": "verify_cross_reference",
+    "input": "Section 7.2 -> Section 6.1",
+    "summary": "Confirmed indemnification under Section 7.1 is expressly uncapped (exempt from Section 6.1 $50k cap)"
+  }
+]</pre>
+        </div>
+      </details>
+
+      <details>
+        <summary><span>Trace: Cloud Vendor Services Agreement</span> <span style="color: var(--primary);">3 Tool Steps</span></summary>
+        <div class="details-body">
+          <pre>[
+  {
+    "step": 1,
+    "tool": "get_contract_outline",
+    "input": "02_vendor_services_agreement",
+    "summary": "Discovered 20 sections & schedules"
+  },
+  {
+    "step": 2,
+    "tool": "get_contract_section",
+    "input": "SECTION 9",
+    "summary": "Extracted Section 9.2: General aggregate cap is specifically six (6) months of fees paid (not standard 12 months)"
+  },
+  {
+    "step": 3,
+    "tool": "verify_cross_reference",
+    "input": "Section 9.2(c) -> Section 8.1",
+    "summary": "Confirmed Vendor IP indemnification is capped at $2,000,000 USD under Section 8.1"
+  }
+]</pre>
+        </div>
+      </details>
+
+      <details>
+        <summary><span>Trace: Enterprise Master Services Agreement</span> <span style="color: var(--primary);">5 Tool Steps</span></summary>
+        <div class="details-body">
+          <pre>[
+  {
+    "step": 1,
+    "tool": "get_contract_outline",
+    "input": "03_master_services_agreement",
+    "summary": "Discovered 23 sections & schedules"
+  },
+  {
+    "step": 2,
+    "tool": "verify_cross_reference",
+    "input": "Section 11.2 -> Section 11.3 & Schedule B",
+    "summary": "Discovered Enhanced Super-Cap of $5,000,000 USD or 3x fees for Schedule B data breaches and confidentiality"
+  },
+  {
+    "step": 3,
+    "tool": "verify_cross_reference",
+    "input": "Section 11.4(a) -> Section 12",
+    "summary": "Confirmed Indemnification obligations under Section 12 are strictly UNCAPPED and exempt from general and super caps"
+  },
+  {
+    "step": 4,
+    "tool": "get_contract_section",
+    "input": "SCHEDULE B",
+    "summary": "Extracted Schedule B Section 3: Incident notification is 24 hours (not standard 72h) and immediate security audit right in Section 5"
+  },
+  {
+    "step": 5,
+    "tool": "get_contract_section",
+    "input": "SECTION 1",
+    "summary": "Identified strict Order of Precedence: Schedule B > Main Body > Schedule C > Schedule A > SOW"
+  }
+]</pre>
+        </div>
+      </details>
+
+    </div>
+  </div>
+</body>
+</html>
