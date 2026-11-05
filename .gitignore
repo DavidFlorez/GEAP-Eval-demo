@@ -5,4 +5,4 @@ __pycache__/
 virtualenv/
 .venv/
 venv/
-
+.adk/

@@ -12,7 +12,7 @@ from .tools import (
     verify_cross_reference,
 )
 
-MODEL = os.environ.get("ADK_MODEL", "gemini-2.0-flash")
+MODEL = os.environ.get("ADK_MODEL", "gemini-2.5-flash")
 
 AGENT_INSTRUCTION = """You are an elite enterprise legal compliance AI agent.
 Your mission is to perform rigorous 18-point compliance reviews on legal contracts (NDAs, Vendor Services Agreements, Master Services Agreements).
@@ -38,6 +38,7 @@ THE 18 COMPLIANCE DIMENSIONS:
 18. severability_entire_agreement (Order of precedence & merger clause)
 
 CRITICAL EXECUTION RULES:
+- When a user asks to review a contract (e.g. '01_standard_nda', '02_vendor_services_agreement', '03_master_services_agreement'), the contract name/id is given in the prompt. Immediately call `get_contract_outline` on that contract_id. Do NOT ask for clarification or confirmation; proceed directly with inspecting the clauses using your tools.
 - Use `get_contract_outline` first to understand the document layout and identify attached schedules.
 - Use `get_contract_section` and `search_contract_clauses` to extract verbatim clause text.
 - If a section references another provision (e.g. 'subject to Section 11.3', 'governed by Schedule B', 'except under Section 12'), you MUST call `verify_cross_reference` to check for super-caps, carve-outs, or overrides.

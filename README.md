@@ -177,20 +177,38 @@ Configure your Argolis project ID in [`contract_review_agent/.env`](contract_rev
 ```bash
 # Configure your active Argolis project
 export GOOGLE_CLOUD_PROJECT="assist-463118"  # or your active Argolis project ID
+export GOOGLE_CLOUD_PROJECT="assist-463118"
 export GOOGLE_CLOUD_REGION="us-central1"
 
-# Run automated deployment to Agent Engine
-./deploy_to_geap.sh $GOOGLE_CLOUD_PROJECT $GOOGLE_CLOUD_REGION
-```
-Or run the deployment command directly:
-```bash
+# Deployed Resource in Google Cloud (GEAP Agent Engine):
+# projects/806084165595/locations/us-central1/reasoningEngines/843288309986754560
+# Staging Bucket: gs://assist-463118-contract-review-staging
+
+# Re-deploy or update if needed:
 agents deploy agent_engine \
   --project="assist-463118" \
   --region="us-central1" \
-  --staging_bucket="gs://assist-463118-geap-staging" \
-  --display_name="geap-contract-compliance-reviewer" \
+  --staging_bucket="gs://assist-463118-contract-review-staging" \
+  --display_name="Contract Compliance Reviewer" \
   contract_review_agent
 ```
+
+### Running the GEAP Evaluation Suite
+
+To run the evaluation set through the Google ADK CLI (`agents eval`):
+```bash
+PYTHONPATH=. GOOGLE_CLOUD_PROJECT=assist-463118 GOOGLE_CLOUD_LOCATION=us-central1 \
+  agents eval contract_review_agent contract_review_agent/eval_set.json --print_detailed_results
+```
+
+### Querying the Deployed Cloud Agent Directly
+
+To stream live 18-point reviews from the deployed ReasoningEngine instance:
+```bash
+python test_cloud_deployed_agent.py
+```
+This script connects to `projects/806084165595/locations/us-central1/reasoningEngines/843288309986754560`, opens a session, and streams function calls (`get_contract_outline`, `get_contract_section`, `search_contract_clauses`) and verified review findings.
+
 
 ---
 
