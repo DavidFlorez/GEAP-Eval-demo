@@ -156,6 +156,44 @@ python3 -m unittest discover tests
 
 ---
 
+## ☁️ GEAP & Google ADK Integration (Argolis Project)
+
+The Contract Review Agent is packaged as a native Google Agent Development Kit (`google-adk`) agent under [`contract_review_agent/`](contract_review_agent/). You can interact with it, evaluate it, and deploy it to your Argolis GCP project directly using the `agents` CLI.
+
+### 1. Interactive Testing via `agents` CLI
+Launch an interactive session with the contract compliance agent:
+```bash
+agents run contract_review_agent
+```
+
+### 2. Run GEAP Evaluation Set
+Run automated evaluation using the native ADK evaluation harness:
+```bash
+agents eval contract_review_agent contract_review_agent/eval_set.json
+```
+
+### 3. Deploy to GEAP / Vertex AI Agent Engine in Argolis
+Configure your Argolis project ID in [`contract_review_agent/.env`](contract_review_agent/.env) and deploy:
+```bash
+# Configure your active Argolis project
+export GOOGLE_CLOUD_PROJECT="assist-463118"  # or your active Argolis project ID
+export GOOGLE_CLOUD_REGION="us-central1"
+
+# Run automated deployment to Agent Engine
+./deploy_to_geap.sh $GOOGLE_CLOUD_PROJECT $GOOGLE_CLOUD_REGION
+```
+Or run the deployment command directly:
+```bash
+agents deploy agent_engine \
+  --project="assist-463118" \
+  --region="us-central1" \
+  --staging_bucket="gs://assist-463118-geap-staging" \
+  --display_name="geap-contract-compliance-reviewer" \
+  contract_review_agent
+```
+
+---
+
 ## 🔒 Versioning & Reproducibility Constraints
 
 Every evaluation output logs three explicit version tags:

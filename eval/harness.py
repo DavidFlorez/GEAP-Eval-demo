@@ -22,8 +22,6 @@ from eval.schema import (
 from eval.accuracy_metric import AccuracyMetricEvaluator
 from eval.judge_evaluator import LLMJudgeEvaluator
 from eval.efficiency_metric import EfficiencyMetricEvaluator
-from agents.baseline_agent import BaselineAgent
-from agents.tool_augmented_agent import ToolAugmentedAgent
 
 
 class EvaluationHarness:
@@ -57,8 +55,8 @@ class EvaluationHarness:
     def run_contract_evaluation(
         self,
         contract_id: str,
-        baseline_agent: BaselineAgent,
-        tool_agent: ToolAugmentedAgent,
+        baseline_agent: Any,
+        tool_agent: Any,
     ) -> Dict[str, Any]:
         """Runs both agents on a single contract and scores results."""
         # Find contract file
@@ -178,6 +176,9 @@ class EvaluationHarness:
         contracts: Optional[List[str]] = None,
     ) -> ComparativeRunReport:
         """Executes full evaluation on all contracts and generates reports."""
+        from agents.baseline_agent import BaselineAgent
+        from agents.tool_augmented_agent import ToolAugmentedAgent
+
         if contracts is None:
             contracts = list(self.ground_truth["contracts"].keys())
 

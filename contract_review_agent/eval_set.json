@@ -1,0 +1,140 @@
+[
+  {
+    "eval_id": "eval_01_standard_nda",
+    "conversation": [
+      {
+        "invocation_id": "inv_1",
+        "user_content": {
+          "parts": [
+            {
+              "video_metadata": null,
+              "thought": null,
+              "inline_data": null,
+              "file_data": null,
+              "thought_signature": null,
+              "code_execution_result": null,
+              "executable_code": null,
+              "function_call": null,
+              "function_response": null,
+              "text": "Perform an 18-point compliance review on contract 01_standard_nda"
+            }
+          ],
+          "role": null
+        },
+        "final_response": {
+          "parts": [
+            {
+              "video_metadata": null,
+              "thought": null,
+              "inline_data": null,
+              "file_data": null,
+              "thought_signature": null,
+              "code_execution_result": null,
+              "executable_code": null,
+              "function_call": null,
+              "function_response": null,
+              "text": "Delaware governing law, ,000 liability cap, 5-year confidentiality term, commercial terms silent pursuant to Section 15.3."
+            }
+          ],
+          "role": null
+        },
+        "intermediate_data": null,
+        "creation_timestamp": 0.0
+      }
+    ],
+    "session_input": null,
+    "creation_timestamp": 0.0
+  },
+  {
+    "eval_id": "eval_02_vendor_services_agreement",
+    "conversation": [
+      {
+        "invocation_id": "inv_2",
+        "user_content": {
+          "parts": [
+            {
+              "video_metadata": null,
+              "thought": null,
+              "inline_data": null,
+              "file_data": null,
+              "thought_signature": null,
+              "code_execution_result": null,
+              "executable_code": null,
+              "function_call": null,
+              "function_response": null,
+              "text": "Perform an 18-point compliance review on contract 02_vendor_services_agreement"
+            }
+          ],
+          "role": null
+        },
+        "final_response": {
+          "parts": [
+            {
+              "video_metadata": null,
+              "thought": null,
+              "inline_data": null,
+              "file_data": null,
+              "thought_signature": null,
+              "code_execution_result": null,
+              "executable_code": null,
+              "function_call": null,
+              "function_response": null,
+              "text": "California law, 6 months fees liability cap under Section 9.2, ,000,000 vendor IP indemnity cap under Section 8.1, 72-hour breach notice."
+            }
+          ],
+          "role": null
+        },
+        "intermediate_data": null,
+        "creation_timestamp": 0.0
+      }
+    ],
+    "session_input": null,
+    "creation_timestamp": 0.0
+  },
+  {
+    "eval_id": "eval_03_master_services_agreement",
+    "conversation": [
+      {
+        "invocation_id": "inv_3",
+        "user_content": {
+          "parts": [
+            {
+              "video_metadata": null,
+              "thought": null,
+              "inline_data": null,
+              "file_data": null,
+              "thought_signature": null,
+              "code_execution_result": null,
+              "executable_code": null,
+              "function_call": null,
+              "function_response": null,
+              "text": "Perform an 18-point compliance review on contract 03_master_services_agreement"
+            }
+          ],
+          "role": null
+        },
+        "final_response": {
+          "parts": [
+            {
+              "video_metadata": null,
+              "thought": null,
+              "inline_data": null,
+              "file_data": null,
+              "thought_signature": null,
+              "code_execution_result": null,
+              "executable_code": null,
+              "function_call": null,
+              "function_response": null,
+              "text": "New York law, general 12-month cap under Section 11.2, ,000,000 Enhanced Super-Cap for Schedule B breaches, uncapped indemnification, 24-hour breach notice."
+            }
+          ],
+          "role": null
+        },
+        "intermediate_data": null,
+        "creation_timestamp": 0.0
+      }
+    ],
+    "session_input": null,
+    "creation_timestamp": 0.0
+  }
+]
