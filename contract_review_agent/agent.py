@@ -5,7 +5,7 @@ Defines root_agent for deployment via 'agents deploy agent_engine' or local test
 
 import os
 from google.adk.agents import LlmAgent
-from contract_review_agent.tools import (
+from .tools import (
     get_contract_outline,
     get_contract_section,
     search_contract_clauses,

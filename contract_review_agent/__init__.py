@@ -1,6 +1,6 @@
 """GEAP / Google ADK Contract Review Agent Package."""
 
-from contract_review_agent.agent import root_agent
+from .agent import root_agent
 
 agent = root_agent
 
